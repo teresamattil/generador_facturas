@@ -6,10 +6,17 @@ import tempfile
 import zipfile
 import os
 
+# Only import docx2pdf on Windows/macOS
+try:
+    from docx2pdf import convert
+except ImportError:
+    convert = None
+
 st.title("Generador de Facturas")
 
 csv_file = st.file_uploader("Sube el archivo CSV", type=["csv"])
 docx_template = st.file_uploader("Sube la plantilla Word", type=["docx"])
+output_format = st.selectbox("Formato de descarga", ["DOCX", "PDF"])
 
 if st.button("Generar facturas") and csv_file and docx_template:
     df = pd.read_csv(csv_file, sep=',', decimal='.', thousands=',')
@@ -39,11 +46,25 @@ if st.button("Generar facturas") and csv_file and docx_template:
             }
 
             doc.render(context)
+            factura_name = f"FACTURA {context['num_factura']} {context['nombre']}"
+            docx_path = os.path.join(tempfile.gettempdir(), f"{factura_name}.docx")
+            doc.save(docx_path)
 
-            output_name = f"FACTURA {context['num_factura']} {context['nombre']}.docx"
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
-                doc.save(tmp.name)
-                zipf.write(tmp.name, output_name)
+            # Convert to PDF if selected
+            if output_format == "PDF":
+                pdf_path = os.path.join(tempfile.gettempdir(), f"{factura_name}.pdf")
+                if convert:
+                    convert(docx_path, pdf_path)
+                    zipf.write(pdf_path, f"{factura_name}.pdf")
+                else:
+                    st.warning("La conversión a PDF solo está disponible en macOS o Windows.")
+                    zipf.write(docx_path, f"{factura_name}.docx")
+            else:
+                zipf.write(docx_path, f"{factura_name}.docx")
 
     with open(zip_path, "rb") as f:
-        st.download_button("Descargar todas las facturas (.zip)", f, file_name="facturas.zip")
+        st.download_button(
+            label=f"Descargar todas las facturas ({output_format}) (.zip)",
+            data=f,
+            file_name=f"facturas_{output_format.lower()}.zip"
+        )
