@@ -5,6 +5,7 @@ from datetime import datetime, UTC
 import tempfile
 import zipfile
 import os
+import subprocess
 
 st.title("Generador de Facturas")
 
@@ -24,6 +25,22 @@ EXPECTED_COLUMNS = {
 
 uploaded_excel = st.file_uploader("Sube el archivo Excel", type=["xlsx", "xls"])
 uploaded_template = st.file_uploader("Sube la plantilla Word", type=["docx"])
+
+
+def docx_to_pdf(docx_path, output_dir):
+    subprocess.run(
+        [
+            "libreoffice",
+            "--headless",
+            "--convert-to",
+            "pdf",
+            "--outdir",
+            output_dir,
+            docx_path,
+        ],
+        check=True
+    )
+
 
 if st.button("Generar facturas") and uploaded_excel and uploaded_template:
     df = pd.read_excel(uploaded_excel)
@@ -111,7 +128,10 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
             output_name = f"FACTURA {context['num_factura']} {context['nombre']}.docx"
             with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
                 doc.save(tmp.name)
-                zipf.write(tmp.name, output_name)
+                docx_to_pdf(tmp.name, tempfile.gettempdir())
+                pdf_path = tmp.name.replace(".docx", ".pdf")
+                zipf.write(pdf_path, output_name.replace(".docx", ".pdf"))
+                #zipf.write(tmp.name, output_name)
                 os.remove(tmp.name)
 
     os.remove(template_path)
@@ -128,3 +148,4 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
             f,
             file_name="facturas.zip"
         )
+
