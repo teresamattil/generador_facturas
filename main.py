@@ -22,11 +22,15 @@ EXPECTED_COLUMNS = {
     "pct_iva_extra",
 }
 
-excel_file = st.file_uploader("Sube el archivo Excel", type=["xlsx", "xls"])
-docx_template = st.file_uploader("Sube la plantilla Word", type=["docx"])
+uploaded_excel = st.file_uploader("Sube el archivo Excel", type=["xlsx", "xls"])
+uploaded_template = st.file_uploader("Sube la plantilla Word", type=["docx"])
 
-if st.button("Generar facturas") and excel_file and docx_template:
-    df = pd.read_excel(excel_file)
+if st.button("Generar facturas") and uploaded_excel and uploaded_template:
+    try:
+        df = pd.read_excel(uploaded_excel)
+    except Exception as e:
+        st.error("❌ No se pudo leer el archivo Excel")
+        st.stop()
 
     given_columns = set(df.columns)
     missing_columns = EXPECTED_COLUMNS - given_columns
@@ -41,7 +45,7 @@ if st.button("Generar facturas") and excel_file and docx_template:
         st.stop()
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tpl:
-        tpl.write(docx_template.read())
+        tpl.write(uploaded_template.read())
         template_path = tpl.name
 
     zip_path = tempfile.NamedTemporaryFile(delete=False, suffix=".zip").name
@@ -50,31 +54,30 @@ if st.button("Generar facturas") and excel_file and docx_template:
         for i, row in df.iterrows():
             doc = DocxTemplate(template_path)
 
-            subtotal = float(row["cuota_anual"])
-            iva_pct = float(row["pct_iva"])
-            total = subtotal + iva_pct * subtotal
+            subtotal = float(row.get("cuota_anual", 0))
+            iva_pct = float(row.get("pct_iva", 0))
+            subtotal_extra = float(row.get("cuota_extra", 0))
+            iva_pct_extra = float(row.get("pct_iva_extra", 0))
 
-            subtotal_extra = float(row["cuota_extra"])
-            iva_pct_extra = float(row["pct_iva_extra"])
-            total_extra = subtotal_extra + iva_pct_extra * subtotal_extra
-
+            total = subtotal * (1 + iva_pct)
+            total_extra = subtotal_extra * (1 + iva_pct_extra)
             total_final = total + total_extra
 
             context = {
-                "nombre": row["Nombre"],
-                "direccion": row["direccion"],
-                "codigo_postal": row["codigo_postal"],
-                "municipio": row["municipio"],
-                "CIF": row["CIF"],
+                "nombre": row.get("Nombre", ""),
+                "direccion": row.get("direccion", ""),
+                "codigo_postal": row.get("codigo_postal", ""),
+                "municipio": row.get("municipio", ""),
+                "CIF": row.get("CIF", ""),
                 "num_factura": f"{datetime.now(UTC).year}{(i + 1):03d}",
                 "fecha": datetime.now(UTC).strftime("%d/%m/%Y"),
 
-                "tipo_socio": row["tipo_socio"],
+                "tipo_socio": row.get("tipo_socio", ""),
                 "cuota_anual": f"{subtotal:.2f}".replace('.', ','),
                 "pct_iva_socio": f"{iva_pct:.2f}".replace('.', ','),
                 "valor_iva_socio": f"{subtotal * iva_pct:.2f}".replace('.', ','),
 
-                "tipo_extra": row["tipo_extra"],
+                "tipo_extra": row.get("tipo_extra", ""),
                 "cuota_extra": f"{subtotal_extra:.2f}".replace('.', ','),
                 "pct_iva_extra": f"{iva_pct_extra:.2f}".replace('.', ','),
                 "valor_iva_extra": f"{subtotal_extra * iva_pct_extra:.2f}".replace('.', ','),
