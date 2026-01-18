@@ -8,13 +8,38 @@ import os
 
 st.title("Generador de Facturas")
 
+EXPECTED_COLUMNS = {
+    "Nombre",
+    "direccion",
+    "codigo_postal",
+    "municipio",
+    "CIF",
+    "tipo_socio",
+    "cuota_anual",
+    "pct_iva",
+    "tipo_extra",
+    "cuota_extra",
+    "pct_iva_extra",
+}
+
 excel_file = st.file_uploader("Sube el archivo Excel", type=["xlsx", "xls"])
 docx_template = st.file_uploader("Sube la plantilla Word", type=["docx"])
 
 if st.button("Generar facturas") and excel_file and docx_template:
     df = pd.read_excel(excel_file)
 
-    # Guardar la plantilla Word una sola vez en disco
+    given_columns = set(df.columns)
+    missing_columns = EXPECTED_COLUMNS - given_columns
+    unused_columns = given_columns - EXPECTED_COLUMNS
+
+    if missing_columns:
+        st.error("❌ Error en las columnas del Excel")
+        st.write("**Columnas esperadas:**", sorted(EXPECTED_COLUMNS))
+        st.write("**Columnas recibidas:**", sorted(given_columns))
+        st.write("**Columnas faltantes:**", sorted(missing_columns))
+        st.write("**Columnas no usadas:**", sorted(unused_columns))
+        st.stop()
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tpl:
         tpl.write(docx_template.read())
         template_path = tpl.name
@@ -26,7 +51,7 @@ if st.button("Generar facturas") and excel_file and docx_template:
             doc = DocxTemplate(template_path)
 
             subtotal = float(row["cuota_anual"])
-            iva_pct = float(row["pct_iva_socio"])
+            iva_pct = float(row["pct_iva"])
             total = subtotal + iva_pct * subtotal
 
             subtotal_extra = float(row["cuota_extra"])
