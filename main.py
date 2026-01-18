@@ -8,11 +8,11 @@ import os
 
 st.title("Generador de Facturas")
 
-csv_file = st.file_uploader("Sube el archivo CSV", type=["csv"])
+excel_file = st.file_uploader("Sube el archivo Excel", type=["xlsx", "xls"])
 docx_template = st.file_uploader("Sube la plantilla Word", type=["docx"])
 
-if st.button("Generar facturas") and csv_file and docx_template:
-    df = pd.read_csv(csv_file, sep=',', decimal='.', thousands=',')
+if st.button("Generar facturas") and excel_file and docx_template:
+    df = pd.read_excel(excel_file)
     zip_path = tempfile.NamedTemporaryFile(delete=False, suffix=".zip").name
 
     with zipfile.ZipFile(zip_path, "w") as zipf:
@@ -47,4 +47,8 @@ if st.button("Generar facturas") and csv_file and docx_template:
                 os.remove(tmp.name)
 
     with open(zip_path, "rb") as f:
-        st.download_button("Descargar todas las facturas (.zip)", f, file_name="facturas.zip")
+        st.download_button(
+            "Descargar todas las facturas (.zip)",
+            f,
+            file_name="facturas.zip"
+        )
