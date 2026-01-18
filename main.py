@@ -8,6 +8,7 @@ import os
 
 st.title("Generador de Facturas")
 
+# Tipo_extra	cuota_extra	pct_iva_extra
 excel_file = st.file_uploader("Sube el archivo Excel", type=["xlsx", "xls"])
 docx_template = st.file_uploader("Sube la plantilla Word", type=["docx"])
 
@@ -22,6 +23,11 @@ if st.button("Generar facturas") and excel_file and docx_template:
             iva_pct = float(row["pct_iva"])
             total = subtotal + iva_pct * subtotal
 
+            #Extras
+            subtotal_extra = float(row("cuota_extra"))
+            iva_pct_extra = float(row("pct_iva_extra"))
+            total_extra = subtotal + iva_pct * subtotal
+
             context = {
                 "nombre": row["Nombre"],
                 "CIF": row["CIF"],
@@ -31,11 +37,15 @@ if st.button("Generar facturas") and excel_file and docx_template:
                 "codigo_postal": row["codigo_postal"],
                 "municipio": row["municipio"],
                 "tipo_socio": row["tipo_socio"],
+                "tipo_extra": row["tipo_extra"],
+                "cuota_extra": row["cuota_extra"],
+                "pct_iva_extra": row["pct_iva_extra"],
                 "pct_iva": "{:.2f}".format(iva_pct).replace('.', ','),
                 "valor_iva": "{:.2f}".format(subtotal * iva_pct).replace('.', ','),
                 "num_factura": f"{datetime.now(UTC).year}{(i + 1):03d}",
                 "fecha": datetime.now(UTC).strftime("%d/%m/%Y"),
-                "total": "{:.2f}".format(total).replace('.', ',')
+                "total": "{:.2f}".format(total).replace('.', ','),
+                "valor_iva_extra": "{:.2f}".format(total_extra).replace('.', ','),
             }
 
             doc.render(context)
