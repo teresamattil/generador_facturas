@@ -16,8 +16,8 @@ EXPECTED_COLUMNS = {
     "CIF",
     "tipo_socio",
     "cuota_anual",
-    "pct_iva",
-    "tipo_extra",
+    "pct_iva_socio",
+    "Tipo_extra",
     "cuota_extra",
     "pct_iva_extra",
 }
@@ -55,7 +55,7 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
             doc = DocxTemplate(template_path)
 
             subtotal = float(row.get("cuota_anual", 0))
-            iva_pct = float(row.get("pct_iva", 0))
+            iva_pct = float(row.get("pct_iva_socio", 0))
             subtotal_extra = float(row.get("cuota_extra", 0))
             iva_pct_extra = float(row.get("pct_iva_extra", 0))
 
@@ -77,7 +77,7 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
                 "pct_iva_socio": f"{iva_pct:.2f}".replace('.', ','),
                 "valor_iva_socio": f"{subtotal * iva_pct:.2f}".replace('.', ','),
 
-                "tipo_extra": row.get("tipo_extra", ""),
+                "Tipo_extra": row.get("Tipo_extra", ""),
                 "cuota_extra": f"{subtotal_extra:.2f}".replace('.', ','),
                 "pct_iva_extra": f"{iva_pct_extra:.2f}".replace('.', ','),
                 "valor_iva_extra": f"{subtotal_extra * iva_pct_extra:.2f}".replace('.', ','),
