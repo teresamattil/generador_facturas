@@ -26,7 +26,7 @@ if st.button("Generar facturas") and excel_file and docx_template:
             doc = DocxTemplate(template_path)
 
             subtotal = float(row["cuota_anual"])
-            iva_pct = float(row["pct_iva"])
+            iva_pct = float(row["pct_iva_socio"])
             total = subtotal + iva_pct * subtotal
 
             subtotal_extra = float(row["cuota_extra"])
