@@ -17,7 +17,7 @@ EXPECTED_COLUMNS = {
     "tipo_socio",
     "cuota_anual",
     "pct_iva_socio",
-    "tipo_extra",
+    "Tipo_extra",
     "cuota_extra",
     "pct_iva_extra",
 }
@@ -64,7 +64,7 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
             total = subtotal * (1 + iva_pct)
 
             tiene_extra = (
-                pd.notna(row["tipo_extra"])
+                pd.notna(row["Tipo_extra"])
                 and pd.notna(row["cuota_extra"])
                 and float(row["cuota_extra"]) > 0
             )
@@ -94,7 +94,7 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
                 "pct_iva_socio": f"{iva_pct:.2f}".replace('.', ','),
                 "valor_iva_socio": f"{subtotal * iva_pct:.2f}".replace('.', ','),
 
-                "tipo_extra": row["tipo_extra"] if tiene_extra else None,
+                "Tipo_extra": row["Tipo_extra"] if tiene_extra else None,
                 "cuota_extra": f"{subtotal_extra:.2f}".replace('.', ',') if tiene_extra else "",
                 "pct_iva_extra": f"{iva_pct_extra:.2f}".replace('.', ',') if tiene_extra else "",
                 "valor_iva_extra": f"{subtotal_extra * iva_pct_extra:.2f}".replace('.', ',') if tiene_extra else "",
