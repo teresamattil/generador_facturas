@@ -100,7 +100,7 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
 
                 "Tipo_extra": row["Tipo_extra"] if tiene_extra else None,
                 "cuota_extra": f"{subtotal_extra:.2f}".replace('.', ',') if tiene_extra else "",
-                "pct_iva_extra": f"{iva_pct_extra:.2f}".replace('.', ',') if tiene_extra else "",
+                "pct_iva_extra": f"{iva_pct_extra*100:.2f}".replace('.', ',') if tiene_extra else "",
                 "valor_iva_extra": f"{subtotal_extra * iva_pct_extra:.2f}".replace('.', ',') if tiene_extra else "",
 
                 "total": f"{total_final:.2f}".replace('.', ','),
