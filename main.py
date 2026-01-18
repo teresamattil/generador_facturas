@@ -8,24 +8,29 @@ import os
 
 st.title("Generador de Facturas")
 
-# Tipo_extra	cuota_extra	pct_iva_extra
 excel_file = st.file_uploader("Sube el archivo Excel", type=["xlsx", "xls"])
 docx_template = st.file_uploader("Sube la plantilla Word", type=["docx"])
 
 if st.button("Generar facturas") and excel_file and docx_template:
     df = pd.read_excel(excel_file)
+
+    # Guardar la plantilla Word una sola vez en disco
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tpl:
+        tpl.write(docx_template.read())
+        template_path = tpl.name
+
     zip_path = tempfile.NamedTemporaryFile(delete=False, suffix=".zip").name
 
     with zipfile.ZipFile(zip_path, "w") as zipf:
         for i, row in df.iterrows():
-            doc = DocxTemplate(docx_template)
+            doc = DocxTemplate(template_path)
+
             subtotal = float(row["cuota_anual"])
             iva_pct = float(row["pct_iva"])
             total = subtotal + iva_pct * subtotal
 
-            #Extras
-            subtotal_extra = float(row("cuota_extra"))
-            iva_pct_extra = float(row("pct_iva_extra"))
+            subtotal_extra = float(row["cuota_extra"])
+            iva_pct_extra = float(row["pct_iva_extra"])
             total_extra = subtotal_extra + iva_pct_extra * subtotal_extra
 
             total_final = total + total_extra
@@ -40,18 +45,16 @@ if st.button("Generar facturas") and excel_file and docx_template:
                 "fecha": datetime.now(UTC).strftime("%d/%m/%Y"),
 
                 "tipo_socio": row["tipo_socio"],
-                "cuota_anual": "{:.2f}".format(subtotal).replace('.', ','),
-                "pct_iva_socio": "{:.2f}".format(iva_pct).replace('.', ','),
-                "valor_iva_socio": "{:.2f}".format(subtotal * iva_pct).replace('.', ','),
+                "cuota_anual": f"{subtotal:.2f}".replace('.', ','),
+                "pct_iva_socio": f"{iva_pct:.2f}".replace('.', ','),
+                "valor_iva_socio": f"{subtotal * iva_pct:.2f}".replace('.', ','),
 
                 "tipo_extra": row["tipo_extra"],
-                "cuota_extra": row["cuota_extra"],
-                "pct_iva_extra": row["pct_iva_extra"],
-                "valor_iva_extra": "{:.2f}".format(total_extra).replace('.', ','),
+                "cuota_extra": f"{subtotal_extra:.2f}".replace('.', ','),
+                "pct_iva_extra": f"{iva_pct_extra:.2f}".replace('.', ','),
+                "valor_iva_extra": f"{subtotal_extra * iva_pct_extra:.2f}".replace('.', ','),
 
-
-                "total": "{:.2f}".format(total).replace('.', ','),
-
+                "total": f"{total_final:.2f}".replace('.', ','),
             }
 
             doc.render(context)
@@ -61,6 +64,8 @@ if st.button("Generar facturas") and excel_file and docx_template:
                 doc.save(tmp.name)
                 zipf.write(tmp.name, output_name)
                 os.remove(tmp.name)
+
+    os.remove(template_path)
 
     with open(zip_path, "rb") as f:
         st.download_button(
