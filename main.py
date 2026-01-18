@@ -114,7 +114,7 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
                 "pct_iva_socio": f"{iva_pct:.2f}".replace('.', ','),
                 "valor_iva_socio": f"{subtotal * iva_pct:.2f}".replace('.', ','),
 
-                "Tipo_extra": row["Tipo_extra"] if tiene_extra else "\u200b",
+                "Tipo_extra": row["Tipo_extra"] if tiene_extra else None,
                 "cuota_extra": f"{subtotal_extra:.2f}".replace('.', ',') if tiene_extra else "",
                 "pct_iva_extra": f"{iva_pct_extra*100:.2f}".replace('.', ',') if tiene_extra else "",
                 "valor_iva_extra": f"{subtotal_extra * iva_pct_extra:.2f}".replace('.', ',') if tiene_extra else "",
