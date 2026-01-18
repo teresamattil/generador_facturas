@@ -94,7 +94,6 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
                 iva_pct_extra = float(row["pct_iva_extra"]/100)
                 total_extra = subtotal_extra * (1 + iva_pct_extra)
             else:
-                Tipo_extra = "\u200b"  # zero-width space (invisible)
                 subtotal_extra = 0
                 iva_pct_extra = 0
                 total_extra = 0
@@ -115,7 +114,7 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
                 "pct_iva_socio": f"{iva_pct:.2f}".replace('.', ','),
                 "valor_iva_socio": f"{subtotal * iva_pct:.2f}".replace('.', ','),
 
-                "Tipo_extra": row["Tipo_extra"] if tiene_extra else None,
+                "Tipo_extra": row["Tipo_extra"] if tiene_extra else " ",
                 "cuota_extra": f"{subtotal_extra:.2f}".replace('.', ',') if tiene_extra else "",
                 "pct_iva_extra": f"{iva_pct_extra*100:.2f}".replace('.', ',') if tiene_extra else "",
                 "valor_iva_extra": f"{subtotal_extra * iva_pct_extra:.2f}".replace('.', ',') if tiene_extra else "",
