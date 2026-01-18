@@ -126,13 +126,29 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
             doc.render(context)
 
             output_name = f"FACTURA {context['num_factura']} {context['nombre']}.docx"
+            
             with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as tmp:
                 doc.save(tmp.name)
+
+                # Rutas finales dentro del ZIP
+                docx_zip_path = f"docx/{output_name}"
+                pdf_zip_path = f"pdf/{output_name.replace('.docx', '.pdf')}"
+
+                # Añadir DOCX
+                zipf.write(tmp.name, docx_zip_path)
+
+                # Convertir a PDF
                 docx_to_pdf(tmp.name, tempfile.gettempdir())
                 pdf_path = tmp.name.replace(".docx", ".pdf")
-                zipf.write(pdf_path, output_name.replace(".docx", ".pdf"))
-                #zipf.write(tmp.name, output_name)
+
+                # Añadir PDF
+                zipf.write(pdf_path, pdf_zip_path)
+
+                # Limpieza
                 os.remove(tmp.name)
+                if os.path.exists(pdf_path):
+                    os.remove(pdf_path)
+
 
     os.remove(template_path)
 
