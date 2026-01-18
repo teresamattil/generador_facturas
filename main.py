@@ -52,6 +52,8 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
 
     zip_path = tempfile.NamedTemporaryFile(delete=False, suffix=".zip").name
 
+    total_gente_extra = 0
+
     with zipfile.ZipFile(zip_path, "w") as zipf:
         for i, row in df.iterrows():
             status_text.text(f"Generando factura {i + 1} de {total_rows} — {row['Nombre']}")
@@ -71,6 +73,7 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
 
             if tiene_extra:
                 st.write("Tiene extra")
+                total_gente_extra += 1
                 subtotal_extra = float(row["cuota_extra"])
                 iva_pct_extra = float(row["pct_iva_extra"]/100)
                 total_extra = subtotal_extra * (1 + iva_pct_extra)
@@ -115,6 +118,9 @@ if st.button("Generar facturas") and uploaded_excel and uploaded_template:
 
     progress_bar.progress(1.0)
     status_text.text("✔️ Facturas generadas correctamente")
+
+    st.write("Gente extra:")
+    st.write(total_gente_extra)
 
     with open(zip_path, "rb") as f:
         st.download_button(
